@@ -5,3 +5,10 @@ node_modules/
 __pycache__/
 *.pyc
 .env
+.venv/
+venv/
+nohup.out
+
+# 每个技能的本地私有文件
+CLAUDE.md
+outputs/
