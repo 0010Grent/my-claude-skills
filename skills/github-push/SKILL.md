@@ -253,6 +253,171 @@ fi
 
 追加缺失条目后，如果 `.gitignore` 有变更，需 git add 它。
 
+### Step 3.5: Corporate Information Sanitization（企业信息清洗）
+
+**在暂存文件之前**，扫描整个项目目录，检测并清除与蚂蚁集团（Ant Group）相关的企业内部信息。此步骤为强制步骤，不可跳过。
+
+#### 3.5.1 关键词列表
+
+以下关键词用于匹配企业相关内容（不区分大小写）：
+
+```bash
+_CORP_KEYWORDS=(
+  # 公司名称
+  "蚂蚁" "蚂蚁集团" "蚂蚁金服" "Ant Group" "AntGroup" "Ant Financial"
+  # 内部域名
+  "antfin.com" "antgroup.com" "alipay.com" "mybank.cn"
+  "antfin-inc.com" "ant-inc.com"
+  # 内部平台/工具
+  "yuque.antfin" "aone.alibaba" "def.alibaba" "antcode"
+  "sofa" "oceanbase" "miniapp"
+  # 内部邮箱后缀
+  "@antfin.com" "@antgroup.com" "@alibaba-inc.com" "@alipay.com"
+  # 产品/服务名（内部语境）
+  "支付宝内部" "蚂蚁内部" "集团内部" "AIS" "蚂蚁MCP" "蚂蚁网关"
+  "mpaas" "金融云" "蚂蚁云"
+)
+```
+
+#### 3.5.2 扫描流程
+
+```bash
+# 排除目录
+_SCAN_EXCLUDES=".git/ .venv/ venv/ __pycache__/ node_modules/ data/ .idea/ .pytest_cache/"
+
+# 构建 grep 模式（用 | 连接所有关键词）
+_pattern=$(printf '%s|' "${_CORP_KEYWORDS[@]}")
+_pattern="${_pattern%|}"  # 去掉末尾 |
+
+# 扫描所有文本文件
+grep -rni --include="*.py" --include="*.md" --include="*.txt" \
+  --include="*.json" --include="*.yml" --include="*.yaml" \
+  --include="*.toml" --include="*.cfg" --include="*.ini" \
+  --include="*.sh" --include="*.env.example" --include="*.html" \
+  -E "$_pattern" . \
+  | grep -v ".git/" | grep -v ".venv/" | grep -v "__pycache__/" \
+  | grep -v "node_modules/" | grep -v ".idea/"
+```
+
+#### 3.5.3 分类处理
+
+扫描结果按以下三类分别处理：
+
+**类型 A：整文件为企业内容（删除）**
+
+文件名或路径包含企业关键词，或文件内容 >50% 涉及企业信息的文件。
+
+判定条件（满足任一即为 A 类）：
+- 文件名包含"蚂蚁"、"antfin"、"antgroup"、"AIS"等关键词
+- 文件内容主要描述企业内部工具/平台/接入流程
+- 文件为企业内部手册、接入文档、对接指南
+
+处理方式：
+```bash
+# 如果文件已被 git 追踪，从 git 中移除
+git rm --cached "{file}" 2>/dev/null
+
+# 如果文件未被追踪，直接删除或添加到 .gitignore
+# 优先删除（推送前清理），若用户需要本地保留则添加到 .gitignore
+rm -f "{file}"   # 默认删除
+# 或: echo "{file}" >> .gitignore  # 用户选择本地保留时
+```
+
+向用户报告：
+```
+🗑️  已删除企业相关文件：
+  - 其他文件/蚂蚁MCP网关接入手册.md（企业内部接入文档）
+  - scripts/deploy_ais_internal.sh（内部部署脚本）
+```
+
+**类型 B：文件中混有企业引用（清洗）**
+
+项目核心代码文件中包含少量企业相关的 URL、邮箱、注释、配置项。
+
+处理方式：
+```bash
+# 替换企业内部 URL 为占位符
+sed -i '' 's|https\?://[a-zA-Z0-9._-]*\.antfin\.com[^ ]*|https://your-internal-url|g' "{file}"
+sed -i '' 's|https\?://[a-zA-Z0-9._-]*\.antgroup\.com[^ ]*|https://your-internal-url|g' "{file}"
+sed -i '' 's|https\?://yuque\.antfin\.com[^ ]*|https://your-docs-url|g' "{file}"
+
+# 替换企业邮箱为占位符
+sed -i '' 's|[a-zA-Z0-9._-]*@antfin\.com|user@example.com|g' "{file}"
+sed -i '' 's|[a-zA-Z0-9._-]*@antgroup\.com|user@example.com|g' "{file}"
+sed -i '' 's|[a-zA-Z0-9._-]*@alibaba-inc\.com|user@example.com|g' "{file}"
+sed -i '' 's|[a-zA-Z0-9._-]*@alipay\.com|user@example.com|g' "{file}"
+
+# 删除整行为企业内部注释的行（如 # 蚂蚁内部XXX）
+sed -i '' '/^[[:space:]]*#.*蚂蚁内部/d' "{file}"
+sed -i '' '/^[[:space:]]*#.*集团内部/d' "{file}"
+```
+
+向用户报告每个文件的清洗详情。
+
+**类型 C：.env / .env.example 中的企业配置（清洗或移除）**
+
+处理方式：
+```bash
+# 检查 .env.example 中是否有企业内部 endpoint
+grep -n "antfin\|antgroup\|alipay\|蚂蚁" .env.example 2>/dev/null
+
+# 替换为通用占位符
+sed -i '' 's|=.*antfin\.com.*|=https://your-api-endpoint|g' .env.example
+sed -i '' 's|=.*antgroup\.com.*|=https://your-api-endpoint|g' .env.example
+```
+
+#### 3.5.4 Git 历史中的企业信息
+
+如果企业相关文件**已经在之前的 commit 中被推送过**：
+
+```bash
+# 检查 git 历史中是否追踪过企业文件
+git log --all --diff-filter=A --name-only --pretty=format: -- "*蚂蚁*" "*antfin*" "*AIS*" 2>/dev/null | sort -u
+```
+
+处理策略：
+- 如果仅在最近 1-2 个未推送的 commit 中 → 用 `git rm --cached` 移除并在新 commit 中清理
+- 如果已推送到远程 → **警告用户**：历史中存在企业信息，建议使用 `git filter-repo` 清理历史（提供命令但不自动执行，需用户确认）
+- 警告文本：
+  ```
+  ⚠️  以下企业相关文件存在于 git 历史中（已推送到远程）：
+    - {file_list}
+  建议使用 git filter-repo 清理历史，但此操作会重写 commit，需 force-push。
+  是否执行历史清理？[y/N]
+  ```
+
+#### 3.5.5 验证
+
+清洗完成后，重新扫描确认无残留：
+
+```bash
+# 最终验证：项目中不应有任何企业关键词
+grep -rni -E "$_pattern" . \
+  | grep -v ".git/" | grep -v ".venv/" | grep -v "__pycache__/" \
+  | grep -v "node_modules/" | grep -v ".idea/"
+```
+
+如果仍有残留，逐一处理后重新验证，直到通过。
+
+#### 3.5.6 向用户报告
+
+```
+🔒 企业信息清洗完成
+
+已删除文件: {delete_count} 个
+  - {file1}（原因）
+  - {file2}（原因）
+
+已清洗文件: {sanitize_count} 个
+  - {file3}: 替换了 {n} 处企业 URL / 邮箱
+  - {file4}: 移除了 {m} 行企业内部注释
+
+历史风险: {yes/no}
+  {如有历史风险，展示具体文件和建议操作}
+
+验证结果: ✅ 无企业信息残留
+```
+
 ### Step 4: Stage & Review
 
 ```bash
@@ -686,6 +851,9 @@ git push -u origin {branch}
 | 重命名后 remote URL 失效 | 检测当前协议（SSH/HTTPS），用同协议重设 URL |
 | grep 发现残留引用 | 逐一修复后重新验证 |
 | `gh repo rename` 失败 | 检查仓库权限，可能需要手动在 GitHub 网页重命名 |
+| 企业信息扫描发现残留 | 逐一清洗后重新验证，直到扫描通过 |
+| 企业文件已存在于 git 历史 | 警告用户，提供 `git filter-repo` 命令但不自动执行 |
+| 企业 URL 嵌在代码逻辑中（非注释） | 替换为占位符后提示用户检查功能是否受影响 |
 
 ## Anti-Patterns
 
@@ -703,6 +871,9 @@ git push -u origin {branch}
 - **禁止**直接使用中文或含空格的目录名作为 GitHub 仓库名（必须要求用户指定 ASCII 名）
 - **禁止**在 Step 2.5 诊断出单层嵌套后跳过警告直接推送（必须告知用户并等待确认）
 - **禁止**重命名后硬编码 SSH 或 HTTPS 协议重设 remote URL（必须检测当前协议后保持一致）
+- **禁止**推送包含蚂蚁集团（Ant Group）企业内部信息的文件——包括内部手册、内部 URL（`*.antfin.com`、`*.antgroup.com`）、内部邮箱（`@antfin.com`）、内部工具名称等
+- **禁止**跳过 Step 3.5 企业信息清洗步骤直接进入暂存
+- **禁止**在未完成企业信息验证扫描的情况下执行 commit 和 push
 
 ## README Visual Enhancement（可视化增强）
 
@@ -1006,3 +1177,6 @@ where = ["src"]
 - 重命名后提醒用户更新其他可能引用旧名的地方（如 CI/CD 配置、Docker compose、部署脚本等）
 - 撰写 README 时执行 Project Positioning Protocol，根据项目类型（简洁/技术/产品/管线）选择合适风格，避免所有项目套用同一套措辞
 - 如果用户需要，在推送完成后运行 `scripts/generate_social_preview.py` 生成 Social Preview 辅助图
+- **推送前必须执行 Step 3.5 企业信息清洗**：扫描蚂蚁集团相关关键词，删除企业内部文档，清洗代码中的内部 URL/邮箱/工具名
+- 企业信息清洗后必须重新验证扫描通过，未通过验证前禁止进入 Stage 步骤
+- 如果 git 历史中存在企业文件，警告用户并提供清理建议（`git filter-repo`），但不自动执行 force-push
