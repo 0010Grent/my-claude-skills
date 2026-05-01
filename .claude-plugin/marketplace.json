@@ -1,0 +1,14 @@
+{
+  "name": "0010Grent-my-claude-skills",
+  "owner": {
+    "name": "0010Grent",
+    "url": "https://github.com/0010Grent/my-claude-skills"
+  },
+  "plugins": [
+    {
+      "name": "my-skills",
+      "source": ".",
+      "description": "个人自建 skill 集合：github-push / CV-create / llm-pipeline-scaffold"
+    }
+  ]
+}
