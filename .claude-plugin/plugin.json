@@ -1,0 +1,12 @@
+{
+  "name": "my-skills",
+  "description": "个人自建 skill 集合，包含 CV 生成、GitHub 推送、LLM pipeline 脚手架等工作流",
+  "version": "1.0.0",
+  "author": {
+    "name": "0010Grent",
+    "email": "202520210700@uibe.edu.cn",
+    "url": "https://github.com/0010Grent/my-claude-skills"
+  },
+  "repository": "https://github.com/0010Grent/my-claude-skills",
+  "license": "MIT"
+}
