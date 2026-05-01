@@ -7,10 +7,7 @@
   "plugins": [
     {
       "name": "my-skills",
-      "source": {
-        "source": "github",
-        "repo": "0010Grent/my-claude-skills"
-      },
+      "source": "https://github.com/0010Grent/my-claude-skills.git",
       "description": "个人自建 skill 集合：github-push / CV-create / llm-pipeline-scaffold"
     }
   ]
