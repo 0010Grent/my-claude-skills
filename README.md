@@ -1,16 +1,37 @@
 # my-claude-skills
 
-我的 Claude Code 自建 Skills 集合，用于日常开发工作流。
+Claude Code 插件包，包含 3 个自建 Skills，用于日常开发工作流。
 
-## 使用方式
+## 安装
 
-将需要的 skill 目录复制到 `~/.claude/skills/` 即可：
+需要 Claude Code CLI（`claude` 命令可用）。
+
+### 1. 克隆仓库
 
 ```bash
-cp -r github-push ~/.claude/skills/
-cp -r CV-create ~/.claude/skills/
-cp -r llm-pipeline-scaffold ~/.claude/skills/
+git clone https://github.com/0010Grent/my-claude-skills.git
 ```
+
+### 2. 注册 Plugin
+
+进入仓库目录后执行：
+
+```bash
+cd my-claude-skills
+claude /plugin install .
+```
+
+安装成功后，Claude Code 会话内即可直接使用以下触发词。
+
+### 更新
+
+Skill 内容迭代后，拉取最新代码即可，无需重新注册：
+
+```bash
+git pull
+```
+
+---
 
 ## Skills 列表
 
@@ -57,10 +78,12 @@ LLM 批量流水线脚手架，提炼自三个生产项目的设计模式。
 - tmux/nohup 长任务启动脚本
 - 可选：自动提示词迭代优化模块（`optimizer/`）
 
+---
+
 ## 与其他 Skills 库的关系
 
 | 来源 | 安装方式 | 说明 |
 |------|---------|------|
-| [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | Claude Code 插件管理器 | 81 个通用 skills |
+| [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | `claude /plugin install` | 81 个通用 skills |
 | [mattpocock/skills](https://github.com/mattpocock/skills) | 手动复制 | 工程类 18 个 skills |
-| 本仓库 | 手动复制 | 个人自建 |
+| 本仓库 | `claude /plugin install` | 个人自建 |
