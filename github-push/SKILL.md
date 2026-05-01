@@ -481,11 +481,25 @@ git push -u origin $current_branch
 
 ```bash
 # 验证远程仓库
-gh repo view {repo_name} --json url,isPrivate
+gh repo view {username}/{repo_name} --json url,isPrivate
 
 # 验证推送成功
 git log --oneline -3
 git status
+```
+
+**同步更新 GitHub 仓库描述（必须执行）**：
+
+根据 Project Positioning Protocol 中选定的风格，撰写新描述并更新：
+
+```bash
+gh repo edit {username}/{repo_name} --description "{按所选风格撰写的一句话描述}"
+```
+
+验证描述已更新：
+
+```bash
+gh repo view {username}/{repo_name} --json description
 ```
 
 向用户报告：
@@ -493,6 +507,7 @@ git status
 ✅ 推送完成
 
 仓库: https://github.com/{username}/{repo_name}
+描述: {新描述内容}
 可见性: private
 分支: main
 提交: {commit_count} 个文件
@@ -874,6 +889,7 @@ git push -u origin {branch}
 - **禁止**推送包含蚂蚁集团（Ant Group）企业内部信息的文件——包括内部手册、内部 URL（`*.antfin.com`、`*.antgroup.com`）、内部邮箱（`@antfin.com`）、内部工具名称等
 - **禁止**跳过 Step 3.5 企业信息清洗步骤直接进入暂存
 - **禁止**在未完成企业信息验证扫描的情况下执行 commit 和 push
+- **禁止**推送后不执行 `gh repo edit --description` 同步更新 GitHub 仓库描述（每次推送必须更新）
 
 ## README Visual Enhancement（可视化增强）
 
