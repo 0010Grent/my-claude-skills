@@ -57,22 +57,6 @@ LLM 批量流水线脚手架，提炼自三个生产项目的设计模式。
 - tmux/nohup 长任务启动脚本
 - 可选：自动提示词迭代优化模块（`optimizer/`）
 
----
-
-### `learned`
-
-占位目录，用于积累经验性 prompts。
-
-## 私有 Skills
-
-以下 skills 因包含内部平台信息，存放于私有仓库：
-
-- `dataphin` — Dataphin/MaxCompute 数据开发
-- `wohu-knowledge-base` — 外部 RAG 知识库检索
-- `eve-*` — EVE 大模型评测平台
-- `aistudio-connect-diagnosis` — AIStudio 连接诊断
-- `ant-find-skills` — 内部 skill 发现
-
 ## 与其他 Skills 库的关系
 
 | 来源 | 安装方式 | 说明 |
