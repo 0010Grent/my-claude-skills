@@ -1,6 +1,6 @@
 # my-claude-skills
 
-Claude Code 插件包，包含 4 个自建 Skills，用于日常开发工作流。
+Claude Code 插件包，包含自建 Skills 与 Agents，用于日常开发工作流与学术可视化。
 
 ## 安装
 
@@ -81,10 +81,39 @@ LLM 批量流水线脚手架，提炼自三个生产项目的设计模式。
 
 ---
 
+### `manimgl-3b1b`
+
+使用 manimgl（3Blue1Brown 个人动画库）制作概念阐释动画。输出 MP4/GIF，用于学术汇报或 PPT 嵌入。
+
+**触发词**：`制作动画`、`manim`、`3b1b 风格`、`概念可视化`
+
+**功能**：
+- 将数学公式、算法流程、数据流转化为可视化动画
+- 深色背景、LaTeX 公式、ValueTracker 动态数值驱动
+- 慢速播放（20~36 秒/场景），适合 PPT 逐步讲解
+- 内置色彩系统与几何元素规范（BLUE/YELLOW/GREEN/RED/TEAL 语义映射）
+
+---
+
+## Agents 列表
+
+Agents 存放于 `agents/` 目录，安装时同步到 `~/.claude/agents/`。
+
+### `manimgl-animator`
+
+专门负责编写和渲染 manimgl 动画的 Agent。接收概念描述，输出完整脚本并执行渲染。
+
+**能力**：
+- 阅读论文/文档，提取需可视化的核心概念
+- 按 3B1B 风格规范编写 manimgl 场景脚本
+- 调用 ffmpeg 转码 GIF，验证文件大小与时长
+
+---
+
 ## 与其他 Skills 库的关系
 
 | 来源 | 安装方式 | 说明 |
 |------|---------|------|
 | [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | `claude /plugin install` | 81 个通用 skills |
 | [mattpocock/skills](https://github.com/mattpocock/skills) | 手动复制 | 工程类 18 个 skills |
-| 本仓库 | `claude /plugin install` | 个人自建 |
+| 本仓库 | `bash install.sh` | 个人自建 skills + agents |
