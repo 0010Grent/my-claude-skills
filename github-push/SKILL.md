@@ -26,6 +26,112 @@ origin: custom
 
 ## Protocol
 
+### Step 0: Path Decision（路径决策——在 Pre-flight 之前）
+
+首先判断当前场景，避免对已有仓库执行全套新项目流水线：
+
+```bash
+# 0.1 检查远程仓库是否存在
+git remote get-url origin 2>/dev/null && _has_origin=true || _has_origin=false
+
+# 0.2 检查本地与远程的差异范围
+if $_has_origin; then
+  _branch=$(git rev-parse --abbrev-ref HEAD)
+  git fetch origin $_branch 2>/dev/null
+  _diff_files=$(git diff --name-only origin/$_branch 2>/dev/null | wc -l | tr -d ' ')
+  echo "与远程差异文件数: $_diff_files"
+fi
+```
+
+**路由判定**：
+
+| 条件 | 路由 | 说明 |
+|------|------|------|
+| `origin` 已存在 | **Route A: Fast-track** | 跳过目录诊断、企业信息清洗 |
+| 无 `origin` 远程仓库 | **Route B: 新项目初始化** | 走完整流水线 |
+
+---
+
+### Route A: Existing Repository Fast-track（已有仓库增量推送）
+
+当 Step 0 判定为已有仓库时，不执行 Step 2.5（目录结构诊断）和 Step 3.5（企业信息清洗）。直接进入以下三步：
+
+#### Route A Step 1: Snapshot & Diff
+
+```bash
+# 暂存当前未提交更改作为可恢复快照
+git stash push -m "github-push-auto-$(date +%s)" --include-untracked 2>/dev/null || true
+
+# 查看本地与远程的差异范围
+_branch=$(git rev-parse --abbrev-ref HEAD)
+git fetch origin $_branch 2>/dev/null
+git diff origin/$_branch --stat
+
+# 查看分叉关系
+_merge_base=$(git merge-base HEAD origin/$_branch)
+_local_head=$(git rev-parse HEAD)
+_remote_head=$(git rev-parse origin/$_branch)
+echo "merge_base=$_merge_base local=$_local_head remote=$_remote_head"
+```
+
+#### Route A Step 2: Divergence Strategy（分叉处理策略 ——核心改进）
+
+根据 merge-base 结果选择策略：
+
+```bash
+_branch=$(git rev-parse --abbrev-ref HEAD)
+if git merge-base --is-ancestor origin/$_branch HEAD 2>/dev/null; then
+  _strategy="fast_forward"       # 本地领先，直接 push
+elif git merge-base --is-ancestor HEAD origin/$_branch 2>/dev/null; then
+  _strategy="behind_remote"        # 本地落后，reset 到远程再应用
+else
+  _strategy="diverged"             # 分叉，必须报告用户
+fi
+echo "Strategy: $_strategy"
+```
+
+**Fork 处理决策树**（按优先级）：
+
+1. **fast_forward**（最常见）：远程是本地的祖先 → 恢复 stash，`git add -A`，commit，`git push`
+2. **behind_remote**（远程领先）：本地是远程的祖先 → 恢复 stash，`git reset --hard origin/branch`，重新 commit，push。回滚：`git reset --hard <original_commit>`
+3. **diverged**（分叉）：禁止自动 merge/rebase。必须向用户报告：
+   ```
+   本地与远程已分叉，差异文件：{file_list}
+   请选择处理方式：
+   1) rebase → git pull --rebase origin main
+   2) merge → git merge origin/main
+   3) exit → 退出，由你手动处理
+   ```
+   等待用户回复后再执行，不要擅自做主。
+
+#### Route A Step 3: Commit & Push
+
+```bash
+# 恢复工作树
+git stash pop 2>/dev/null || true
+
+# 暂存变更（如果用户指定了特定文件如 README.md，只暂存该文件）
+git add -A  # 或 git add <user-specified-files>
+
+git commit -m "$(cat <<'EOF'
+sync: 更新 {files}
+EOF
+)"
+
+git push origin $(git rev-parse --abbrev-ref HEAD)
+```
+
+**Route A 禁止行为**：
+- 禁止对已有仓库执行 `git pull --no-rebase`（会导致大规模合并冲突）
+- 禁止在未确认差异范围的情况下自动 merge
+- 禁止覆盖远程主分支 commit（非 fast-forward push）
+
+---
+
+### Route B: New Project Initialization（新项目初始化）
+
+当 Step 0 判定为无远程仓库时，执行以下完整流程。标记为 `*仅 Route B*` 的步骤在已有仓库场景下跳过。
+
 ### Step 1: Pre-flight Checks
 
 依次执行以下检查，任一失败则中止并提示用户修复：
@@ -89,7 +195,7 @@ done
 - 可见性：`private`（默认，可选 `public` 或 `internal`）
 - 描述：基于项目内容自动生成建议，用户可修改
 
-### Step 2.5: Directory Structure Audit（目录结构诊断）
+### Step 2.5: Directory Structure Audit（仅 Route B：新项目推送时执行）（目录结构诊断）
 
 **在暂存文件之前**，检测是否存在单层嵌套——即仓库根目录下只有一个包含源码的子目录（Python 包），而根目录本身几乎为空。这种结构会造成 `repo/{subdir}/main.py` 冗余路径。
 
@@ -253,7 +359,7 @@ fi
 
 追加缺失条目后，如果 `.gitignore` 有变更，需 git add 它。
 
-### Step 3.5: Corporate Information Sanitization（企业信息清洗）
+### Step 3.5: Corporate Information Sanitization（仅 Route B：新项目推送时执行）（企业信息清洗）
 
 **在暂存文件之前**，扫描整个项目目录，检测并清除与蚂蚁集团（Ant Group）相关的企业内部信息。此步骤为强制步骤，不可跳过。
 
@@ -885,6 +991,9 @@ git push -u origin {branch}
 - **禁止**推送除 README.md 外的其他 Markdown 文件（如 PLAN.md、ARCHITECTURE.md、INFRASTRUCTURE_PATTERNS.md 等）
 - **禁止**直接使用中文或含空格的目录名作为 GitHub 仓库名（必须要求用户指定 ASCII 名）
 - **禁止**在 Step 2.5 诊断出单层嵌套后跳过警告直接推送（必须告知用户并等待确认）
+- **禁止**对已有仓库执行全套新项目检查——仓库已存在时必须走 Route A Fast-track，跳过目录诊断和企业信息清洗
+- **禁止**对已有仓库自动执行 `git pull --no-rebase`——可能引发大规模合并冲突
+- **禁止**在分叉未确认范围时自动 merge/rebase——必须先报告差异再等待用户选择
 - **禁止**重命名后硬编码 SSH 或 HTTPS 协议重设 remote URL（必须检测当前协议后保持一致）
 - **禁止**推送包含蚂蚁集团（Ant Group）企业内部信息的文件——包括内部手册、内部 URL（`*.antfin.com`、`*.antgroup.com`）、内部邮箱（`@antfin.com`）、内部工具名称等
 - **禁止**跳过 Step 3.5 企业信息清洗步骤直接进入暂存
