@@ -524,10 +524,240 @@ grep -rni -E "$_pattern" . \
 验证结果: ✅ 无企业信息残留
 ```
 
+### Step 3.8: Auto-Generate README.md（仅 Route B，自动执行）
+
+**触发条件**（满足任一即执行）：
+- 项目根目录下不存在 `README.md`
+- 用户明确说"帮我生成 README"
+
+**跳过条件**（满足任一即跳过）：
+- `README.md` 已存在且非空
+- 用户说"不要生成 README"
+
+**前置要求**：
+- 必须在 Step 2（Resolve Repo Name）之后执行，确保 `repo_name` 已确定
+- 必须在 Step 3.5（企业信息清洗）之后执行，确保生成内容不含企业信息
+- 复用 Project Positioning Protocol 已分析出的 `style`
+
+#### 3.8.1 提取项目元数据
+
+```bash
+# 检测主语言（用于 badge 和 Quick Start 安装命令）
+_lang=""; _lang_badge=""; _install_cmd=""; _run_cmd=""
+if [ -f "pyproject.toml" ] || [ -f "requirements.txt" ] || find . -maxdepth 1 -name "*.py" | grep -q .; then
+  _lang="Python"
+  _lang_badge="Python-3.10+-3776AB?logo=python&logoColor=white"
+  [ -f "requirements.txt" ] && _install_cmd="pip install -r requirements.txt"
+  [ -f "pyproject.toml" ] && _install_cmd="pip install -e ."
+  _run_cmd="python"
+elif [ -f "package.json" ]; then
+  _lang="JavaScript"
+  _lang_badge="Node.js-18+-339933?logo=node.js&logoColor=white"
+  _install_cmd="npm install"
+  _run_cmd="npm run"
+  [ -f "vite.config.js" ] || [ -f "vite.config.ts" ] && _run_cmd="npm run dev"
+elif find . -maxdepth 1 -name "*.go" | grep -q .; then
+  _lang="Go"
+  _lang_badge="Go-1.21+-00ADD8?logo=go&logoColor=white"
+  _install_cmd="go mod download"
+  _run_cmd="go run"
+fi
+
+# 检测入口文件
+_entry=""
+for f in "src/cli.py" "cli.py" "main.py" "app.py" "run.py" "index.js" "main.go" "cmd/main.go"; do
+  [ -f "$f" ] && { _entry="$f"; break; }
+done
+
+# 检测 CLI 工具特征
+_has_cli=false
+if grep -q "argparse\|click\|typer" *.py 2>/dev/null || grep -q "commander\|yargs\|oclif" "*.js" 2>/dev/null || [ -f "src/cli.py" ] || [ -f "cmd/main.go" ]; then
+  _has_cli=true
+fi
+
+# 检测是否已发布到 PyPI / npm
+_is_package=false
+[ -f "pyproject.toml" ] && grep -q "\[project\]" pyproject.toml && _is_package=true
+[ -f "setup.py" ] && _is_package=true
+[ -f "package.json" ] && grep -q '"name"' package.json && _is_package=true
+```
+
+#### 3.8.2 风格确认
+
+复用 Step 2 的 Project Positioning Protocol 已分析出的 `style`（concise / technical / product / pipeline）。
+
+**风格推断辅助规则**（当定位协议输出模糊时使用）：
+
+| 检测特征 | 推断风格 | 描述 |
+|---------|---------|------|
+| `_has_cli=true` 且 `_is_package=false` | concise | CLI 小工具 |
+| `_is_package=true` 且有 API/接口代码 | technical | 库/SDK |
+| 存在 Web 框架引用（Flask/FastAPI/Express/Next.js） | product | 应用/服务 |
+| 文件名含 `pipeline`、`stage`、`ETL`、`transform` | pipeline | 数据管线 |
+
+#### 3.8.3 README 生成模板（FinSight 格式）
+
+README.md 必须按以下区块生成，格式参考 `github-push` 自身的 README.md（FinSight 风格）。各区块内容根据所选风格动态填充：
+
+**区块 A：居中 Header + Badges**
+
+```markdown
+<div align="center">
+
+# {_repo_name} — {按 Project Positioning Protocol 的标题公式}
+
+*{一句话副标题}*
+
+<p>
+  <img src="https://img.shields.io/badge/{_lang_badge}" />
+  <img src="https://img.shields.io/github/license/{username}/{_repo_name}" />
+  <img src="https://img.shields.io/github/last-commit/{username}/{_repo_name}" />
+</p>
+
+</div>
+```
+
+Badge 规则：最多 5 个，通用徽章（Language、License、Last Commit）前置，项目特有徽章（如 PyPI Version、CI Status）后置。不要硬凑不存在的徽章。
+
+**区块 B：一句话定位**
+
+按所选风格写 2-3 句话：
+- 这是什么（项目本质）
+- 为什么值得用（解决什么特定问题）
+- 谁应该用（目标用户或下游消费方）
+
+**区块 C：Table of Contents**
+
+生成标准锚点链接列表，至少包含：
+- Key Features
+- Quick Start
+- File Structure
+- License
+
+技术型/管线型额外加入 Architecture。
+
+**区块 D：Key Features**（4-6 项，每项带 emoji 前缀 + 一句话描述）
+
+从项目代码和文件结构中推断：
+- 读取 `src/` 或根目录下的 `.py`/`.js`/`.go` 文件名
+- 提取核心功能模块名
+- 从 `README.md` 之外的其他文档（如 `docs/`、代码注释）中提取功能描述
+- **严禁编造未在代码中实际存在的功能**
+
+| 风格 | Feature 描述侧重点 |
+|------|-------------------|
+| concise | 核心功能点 + CLI 快捷调用 |
+| technical | 架构特性、接口设计、扩展点 |
+| product | 用户价值、使用场景、解决什么痛点 |
+| pipeline | 处理阶段、输入输出格式、质量保障 |
+
+**区块 E：Quick Start**
+
+```markdown
+### Prerequisites
+
+- {_lang} 版本要求（从 pyproject.toml 的 requires-python 或 package.json 的 engines 推断）
+- 其他硬依赖（Pandoc、Node.js 等，从代码引用推断）
+
+### Installation
+
+```bash
+git clone https://github.com/{username}/{_repo_name}.git
+cd {_repo_name}
+{_install_cmd}
+```
+```
+
+**Usage 根据风格变化：**
+- concise：CLI 命令 + 参数说明（从 argparse/click 代码解析）
+- technical：import + API 调用代码片段
+- product：功能入口和配置说明
+- pipeline：输入格式、运行命令、输出目录
+
+**区块 F：Architecture（简洁型可省略）**
+
+使用 `<pre>` ASCII 流程图或文字描述：
+- 简洁型：省略此区块，保留 File Structure
+- 技术型：模块关系图 + 关键接口说明
+- 产品型：系统架构简图 + 技术栈清单
+- 管线型：数据流流程图，标注每个阶段的输入/输出
+
+**区块 G：File Structure**
+
+用 `tree` 符号生成项目目录树，每个目录/文件附带一行注释说明用途。不要只列出文件名。
+
+```markdown
+```text
+{_repo_name}/
+├── src/{package}/              # 核心源码
+│   ├── __init__.py
+│   └── cli.py                  # 命令行入口
+├── tests/                       # 测试用例
+├── docs/                        # 文档
+├── pyproject.toml              # 包配置
+└── README.md                    # 项目说明（本文件）
+```
+```
+
+**区块 H：License**
+
+链接到仓库 LICENSE 文件：
+```markdown
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+```
+
+如果 LICENSE 不存在，提示用户创建。
+
+#### 3.8.4 防幻觉规则
+
+**严禁编造未在项目代码中实际存在的内容：**
+
+| 禁止行为 | 正确做法 |
+|---------|---------|
+| 描述未实现的 Feature | 只列出代码中已有对应实现的模块/函数 |
+| 虚构 CLI 参数 | 从 `argparse.add_argument` 或 `click.option` 代码中解析 |
+| 编造 Roadmap/TODO 项 | 省略，或写"持续开发中" |
+| 声称支持未测试的平台 | 不写兼容性声明 |
+| 虚构评估指标/性能数据 | 不写任何未运行过的 benchmark |
+| 声称有文档但实际不存在 | 不生成指向不存在文件的链接 |
+
+**推断规则**：
+- 如果某 Feature 在代码中只有函数签名但无实现体（`pass`/`...`），不计入 Key Features
+- 如果 `tests/` 存在且非空，可写"包含单元测试"
+- 如果 `docs/` 存在且非空，可写"提供扩展文档"
+- 如果 `.env.example` 存在，Quick Start 中提示用户 `cp .env.example .env`
+
+#### 3.8.5 写入与暂存
+
+```bash
+# 将生成的内容写入 README.md
+cat > README.md << 'GENERATED_README'
+{按 3.8.3 模板生成的完整内容}
+GENERATED_README
+
+echo "README.md 已自动生成（风格: {style}）"
+
+# Stage README.md，确保在 Step 4 的 git add -A 前已纳入跟踪
+git add README.md 2>/dev/null || true
+```
+
+生成后向用户展示定位分析结果：
+```
+📄 README.md 自动生成完成
+
+风格: {concise|technical|product|pipeline}
+推断依据: {feature1}, {feature2}, {feature3}
+
+副本标题: {repo_name} — {定位公式}
+Key Features: {n} 项（从代码推断）
+```
+
+---
+
 ### Step 4: Stage & Review
 
 ```bash
-# 暂存所有文件
+# 暂存所有文件（Step 3.8 自动生成的 README.md 已在该步骤末尾执行 git add，此处 git add -A 确保全部纳入）
 git add -A
 
 # 检查是否有符号链接被误暂存
@@ -617,6 +847,10 @@ gh repo view {username}/{repo_name} --json description
 可见性: private
 分支: main
 提交: {commit_count} 个文件
+
+README.md: {auto_generated | 已存在未覆盖 | 用户跳过}
+  风格: {concise | technical | product | pipeline}
+  定位: {README 标题}
 ```
 
 ---
@@ -999,6 +1233,11 @@ git push -u origin {branch}
 - **禁止**跳过 Step 3.5 企业信息清洗步骤直接进入暂存
 - **禁止**在未完成企业信息验证扫描的情况下执行 commit 和 push
 - **禁止**推送后不执行 `gh repo edit --description` 同步更新 GitHub 仓库描述（每次推送必须更新）
+- **禁止**自动生成 README 时编造未在代码中实际存在的功能、特性或评估指标——所有 Key Features 必须在源码中有对应实现
+- **禁止**在 `README.md` 已存在且用户未明确要求的情况下自动覆盖已有 README
+- **禁止**为未实现的特性在 README 的 Roadmap 中写 TODO 项（可以写"持续开发中"或直接省略）
+- **禁止**自动生成 README 时声称项目支持未实际测试的平台或未安装的依赖
+- **禁止**在自动生成 README 的 File Structure 中列出不存在或已废弃的文件/目录
 
 ## README Visual Enhancement（可视化增强）
 
