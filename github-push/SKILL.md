@@ -193,7 +193,7 @@ done
 向用户确认：
 - 仓库名：`{repo_name}`（默认，可修改）
 - 可见性：`private`（默认，可选 `public` 或 `internal`）
-- 描述：基于项目内容自动生成建议，用户可修改
+- 描述：基于项目内容自动生成英文 description，用户可修改
 
 ### Step 2.5: Directory Structure Audit（仅 Route B：新项目推送时执行）（目录结构诊断）
 
@@ -784,6 +784,7 @@ gh repo create {repo_name} --{visibility} --source=. --description "{description
 
 - `visibility` 默认 `private`
 - `--source=.` 会自动添加 remote origin
+- `description` 使用 Project Positioning Protocol 生成的英文一句话描述
 - 如果仓库已存在同名 → 提示用户选择：换名 / 推送到已有仓库 / 中止
 
 ### Step 6: Commit
@@ -826,10 +827,10 @@ git status
 
 **同步更新 GitHub 仓库描述（必须执行）**：
 
-根据 Project Positioning Protocol 中选定的风格，撰写新描述并更新：
+根据 Project Positioning Protocol 中选定的风格，撰写英文描述并更新：
 
 ```bash
-gh repo edit {username}/{repo_name} --description "{按所选风格撰写的一句话描述}"
+gh repo edit {username}/{repo_name} --description "{按所选风格撰写的一句话英文描述}"
 ```
 
 验证描述已更新：
@@ -983,27 +984,27 @@ From exam outlines through teacher model distillation, multi-dimensional purity 
 
 ### 仓库描述（--description）格式
 
-仓库描述不是 README 的缩略版，而是搜索结果中的"一句话广告"。按所选风格撰写：
+仓库描述不是 README 的缩略版，而是搜索结果中的"一句话广告"。按所选风格撰写，**默认使用英文**：
 
 ```bash
-# 简洁型
-gh repo edit --description "{一句话功能说明}"
+# 简洁型 (concise)
+gh repo edit --description "{One-line functional description}"
 
-# 技术型
-gh repo edit --description "{技术类别} — {核心机制}"
+# 技术型 (technical)
+gh repo edit --description "{Technical category}: {Core mechanism}"
 
-# 产品型
-gh repo edit --description "{解决什么问题} for {目标用户}"
+# 产品型 (product)
+gh repo edit --description "{Problem solved} for {Target user}"
 
-# 管线型
-gh repo edit --description "{领域} {管线类型} — {关键阶段 × 连接符}"
+# 管线型 (pipeline)
+gh repo edit --description "{Domain} {pipeline type}: {Key stages}"
 ```
 
 描述中避免出现以下空洞修饰词（除非有具体指标支撑）：
-- "智能的"（什么指标证明智能？）
-- "高效的"（和什么比？快多少？）
-- "全自动的"（哪个环节还需要人工介入？）
-- "基于 AI 的"（具体用了什么模型/算法？）
+- "intelligent / smart / 智能的"（什么指标证明？）
+- "efficient / high-performance / 高效的"（和什么比？快多少？）
+- "fully automated / 全自动的"（哪个环节还需要人工介入？）
+- "AI-powered / 基于 AI 的"（具体用了什么模型/算法？）
 
 ### 重命名时的 README 同步
 
@@ -1142,10 +1143,10 @@ git ls-remote --exit-code origin HEAD > /dev/null 2>&1 || \
   echo "⚠️  remote URL 验证失败，请手动检查: git remote -v"
 ```
 
-同时更新仓库描述（按 Project Positioning Protocol 格式）：
+同时更新仓库描述（按 Project Positioning Protocol 格式，使用英文）：
 
 ```bash
-gh repo edit {new_name} --description "[领域] + [技术本质] — [核心机制]"
+gh repo edit {new_name} --description "{Domain}: {Core mechanism / One-line description}"
 ```
 
 ### Step R6: 提交并推送
@@ -1217,7 +1218,7 @@ git push -u origin {branch}
 - **禁止**推送包含蚂蚁集团（Ant Group）企业内部信息的文件——包括内部手册、内部 URL（`*.antfin.com`、`*.antgroup.com`）、内部邮箱（`@antfin.com`）、内部工具名称等
 - **禁止**跳过 Step 3.5 企业信息清洗步骤直接进入暂存
 - **禁止**在未完成企业信息验证扫描的情况下执行 commit 和 push
-- **禁止**推送后不执行 `gh repo edit --description` 同步更新 GitHub 仓库描述（每次推送必须更新）
+- **禁止**推送后不执行 `gh repo edit --description` 同步更新 GitHub 仓库描述（每次推送必须更新，且默认使用英文）
 - **禁止**自动生成 README 时编造未在代码中实际存在的功能、特性或评估指标——所有 Key Features 必须在源码中有对应实现
 - **禁止**在 `README.md` 已存在且用户未明确要求的情况下自动覆盖已有 README
 - **禁止**为未实现的特性在 README 的 Roadmap 中写 TODO 项（可以写"持续开发中"或直接省略）
