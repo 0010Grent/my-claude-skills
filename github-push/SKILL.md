@@ -597,7 +597,7 @@ _is_package=false
 
 #### 3.8.3 README 生成模板（FinSight 格式）
 
-README.md 必须按以下区块生成，格式参考 `github-push` 自身的 README.md（FinSight 风格）。各区块内容根据所选风格动态填充：
+README.md 必须按以下区块生成，格式参考 `github-push` 自身的 README.md（FinSight 风格）。各区块内容根据所选风格动态填充，**默认使用全英文撰写**。
 
 **区块 A：居中 Header + Badges**
 
@@ -606,7 +606,7 @@ README.md 必须按以下区块生成，格式参考 `github-push` 自身的 REA
 
 # {_repo_name} — {按 Project Positioning Protocol 的标题公式}
 
-*{一句话副标题}*
+*{One-line subtitle}*
 
 <p>
   <img src="https://img.shields.io/badge/{_lang_badge}" />
@@ -621,10 +621,10 @@ Badge 规则：最多 5 个，通用徽章（Language、License、Last Commit）
 
 **区块 B：一句话定位**
 
-按所选风格写 2-3 句话：
-- 这是什么（项目本质）
-- 为什么值得用（解决什么特定问题）
-- 谁应该用（目标用户或下游消费方）
+按所选风格写 2-3 句话（英文）：
+- What this is (项目本质)
+- Why it's worth using (解决什么特定问题)
+- Who should use it (目标用户或下游消费方)
 
 **区块 C：Table of Contents**
 
@@ -636,7 +636,7 @@ Badge 规则：最多 5 个，通用徽章（Language、License、Last Commit）
 
 技术型/管线型额外加入 Architecture。
 
-**区块 D：Key Features**（4-6 项，每项带 emoji 前缀 + 一句话描述）
+**区块 D：Key Features**（4-6 项，每项带 emoji 前缀 + 一句话英文描述）
 
 从项目代码和文件结构中推断：
 - 读取 `src/` 或根目录下的 `.py`/`.js`/`.go` 文件名
@@ -646,18 +646,18 @@ Badge 规则：最多 5 个，通用徽章（Language、License、Last Commit）
 
 | 风格 | Feature 描述侧重点 |
 |------|-------------------|
-| concise | 核心功能点 + CLI 快捷调用 |
-| technical | 架构特性、接口设计、扩展点 |
-| product | 用户价值、使用场景、解决什么痛点 |
-| pipeline | 处理阶段、输入输出格式、质量保障 |
+| concise | Core functionality points + CLI quick calls |
+| technical | Architecture characteristics, interface design, extension points |
+| product | User value, usage scenarios, pain points solved |
+| pipeline | Processing stages, input/output formats, quality assurance |
 
 **区块 E：Quick Start**
 
 ```markdown
 ### Prerequisites
 
-- {_lang} 版本要求（从 pyproject.toml 的 requires-python 或 package.json 的 engines 推断）
-- 其他硬依赖（Pandoc、Node.js 等，从代码引用推断）
+- {_lang} version requirement (inferred from pyproject.toml's requires-python or package.json's engines)
+- Other hard dependencies (Pandoc, Node.js, etc., inferred from code references)
 
 ### Installation
 
@@ -669,33 +669,33 @@ cd {_repo_name}
 ```
 
 **Usage 根据风格变化：**
-- concise：CLI 命令 + 参数说明（从 argparse/click 代码解析）
-- technical：import + API 调用代码片段
-- product：功能入口和配置说明
-- pipeline：输入格式、运行命令、输出目录
+- concise: CLI commands + parameter descriptions (parsed from argparse/click code)
+- technical: import + API call code snippets
+- product: Feature entry points and configuration instructions
+- pipeline: Input format, run command, output directory
 
 **区块 F：Architecture（简洁型可省略）**
 
-使用 `<pre>` ASCII 流程图或文字描述：
+使用 `<pre>` ASCII 流程图或文字描述（英文）：
 - 简洁型：省略此区块，保留 File Structure
-- 技术型：模块关系图 + 关键接口说明
-- 产品型：系统架构简图 + 技术栈清单
-- 管线型：数据流流程图，标注每个阶段的输入/输出
+- 技术型：Module relationship diagram + key interface descriptions
+- 产品型：System architecture diagram + tech stack list
+- 管线型：Data flow diagram, labeling input/output for each stage
 
 **区块 G：File Structure**
 
-用 `tree` 符号生成项目目录树，每个目录/文件附带一行注释说明用途。不要只列出文件名。
+用 `tree` 符号生成项目目录树，每个目录/文件附带一行英文注释说明用途。不要只列出文件名。
 
 ```markdown
 ```text
 {_repo_name}/
-├── src/{package}/              # 核心源码
+├── src/{package}/              # Core source code
 │   ├── __init__.py
-│   └── cli.py                  # 命令行入口
-├── tests/                       # 测试用例
-├── docs/                        # 文档
-├── pyproject.toml              # 包配置
-└── README.md                    # 项目说明（本文件）
+│   └── cli.py                  # CLI entry point
+├── tests/                       # Test cases
+├── docs/                        # Documentation
+├── pyproject.toml              # Package configuration
+└── README.md                    # Project description (this file)
 ```
 ```
 
@@ -872,127 +872,112 @@ README.md: {auto_generated | 已存在未覆盖 | 用户跳过}
 
 **关键判断**：如果一个项目本质就是一个小脚本，用简洁型；如果是一个需要别人集成使用的库，用技术型；如果是面向终端用户的应用，用产品型；如果是一连串自动化步骤的处理流程，用管线型。
 
-### 风格模板与示例
+### 风格模板与示例（生成 README 时默认使用英文）
 
 #### 简洁型
 
-标题：直接的功能陈述
+标题：直接的功能陈述（英文）
 ```
-# repo-name — {一句话功能说明}
-```
+# repo-name — {one-line functional description}
 
-描述公式：
-```
-{核心动作} {目标对象}，支持 {关键特性1} 和 {关键特性2}
+{A brief description of what this tool does}
 ```
 
 示例：
 ```
-# csv-merge — 按列名智能合并多个 CSV 文件
+# csv-merge — Smart CSV merger by column name
 
-批量合并多个 CSV，自动对齐列名、处理编码差异、输出去重后的汇总表。
+Batch merge multiple CSVs with automatic column alignment, encoding handling, and deduplicated output.
 ```
 
 #### 技术型
 
-标题：技术定位 + 关键机制
+标题：技术定位 + 关键机制（英文）
 ```
-# repo-name — {技术类别}：{核心机制/设计决策}
-```
+# repo-name — {technical category}: {core mechanism/design decision}
 
-描述公式：
-```
-{技术类别} for {目标语言/平台} — {核心设计决策}，支持 {关键特性}
+{Technical description focusing on architecture and design decisions}
 ```
 
 示例：
 ```
-# async-cache — 异步缓存中间件：基于 TTL 的分层回退策略
+# async-cache — Async caching middleware: TTL-based tiered fallback strategy
 
-为 asyncio 应用设计的缓存抽象层，支持内存 → Redis → 源端三级回退，
-自动处理竞态条件和级联失效。
+Caching abstraction layer for asyncio applications with memory → Redis → source three-tier fallback, handling race conditions and cascade invalidation automatically.
 ```
 
 #### 产品型
 
-标题：用户价值 + 核心场景
+标题：用户价值 + 核心场景（英文）
 ```
-# repo-name — {目标用户} 的 {场景} 解决方案
-```
+# repo-name — {target user}'s {scenario} solution
 
-描述公式：
-```
-帮助 {目标用户} {解决什么问题}，通过 {核心方法}
+{Product description focusing on user value and pain points solved}
 ```
 
 示例：
 ```
-# invoice-parser — 财务团队的 PDF 发票自动录入工具
+# invoice-parser — Automated PDF invoice extraction for finance teams
 
-从扫描版 PDF 提取结构化发票数据，直接导入 ERP 系统，
-减少手动录入时间和错误率。
+Extract structured invoice data from scanned PDFs and import directly into ERP systems, reducing manual entry time and error rates.
 ```
 
 #### 管线型
 
-标题：领域 + 数据流定位
+标题：领域 + 数据流定位（英文）
 ```
-# repo-name — {领域} {管线类型}：{关键阶段}
-```
+# repo-name — {domain} {pipeline type}: {key stages}
 
-描述公式：
-```
-{领域} {管线类型} — {阶段1} → {阶段2} → {阶段3}，产出 {输出物}
+{Pipeline description showing data flow through each stage}
 ```
 
 示例：
 ```
-# finforge — 金融垂域语料合成管线：蒸馏 → 质控 → 迭代
+# finforge — Financial domain corpus synthesis pipeline: distill → QC → iterate
 
-从考点提纲出发，经教师模型蒸馏、多维度纯度验证、多轮自优化迭代，
-产出可直接用于微调的高纯度种子数据集。
+From exam outlines through teacher model distillation, multi-dimensional purity verification, and multi-round self-optimization to produce high-purity seed datasets ready for fine-tuning.
 ```
 
 ### README 撰写要求
 
-根据所选风格，README 按以下结构组织：
+根据所选风格，README 按以下结构组织，**所有内容默认使用英文撰写**：
 
 #### 1. 标题行
 
-`# ProjectName — {按所选风格的标题模板}`
+`# ProjectName — {按所选风格的英文标题模板}`
 
-标题直接反映项目本质，不刻意包装也不过度谦虚。
+标题直接反映项目本质，使用英文撰写，不刻意包装也不过度谦虚。
 
-#### 2. 一句话定位（标题下方第一段）
+#### 2. 一句话定位（标题下方第一段，英文）
 
 用 2-3 句话说明：
-- **这是什么**（按所选风格的定位）
-- **为什么值得用**（比同类方案好在哪里，或解决了什么特定问题）
-- **谁应该用**（目标用户或下游消费方）
+- **What this is** (项目本质)
+- **Why it's worth using** (比同类方案好在哪里，或解决了什么特定问题)
+- **Who should use it** (目标用户或下游消费方)
 
-#### 3. "为什么需要"段落
+#### 3. "Why We Need This" 段落（英文）
 
 回答项目存在的技术或业务理由。根据风格选择侧重点：
-- **简洁型**：现有工具哪里不方便，这个小工具填补了哪个空白
-- **技术型**：技术选型背后的权衡，为什么选择这种架构
-- **产品型**：用户当前的痛点，不用这个会怎样
-- **管线型**：数据质量问题、流程断点、规模化瓶颈
+- **简洁型**: What's inconvenient about existing tools, what gap this tool fills
+- **技术型**: Trade-offs behind technical choices, why this architecture was selected
+- **产品型**: Current user pain points, what happens without this solution
+- **管线型**: Data quality issues, workflow gaps, scaling bottlenecks
 
-#### 4. 架构/流程图
+#### 4. 架构/流程图（英文标注）
 
 按 README Visual Enhancement 规范（见下文）绘制。形式根据项目复杂度选择：
-- 简单项目：文字描述即可，不必强画流程图
+- 简单项目：英文文字描述即可，不必强画流程图
 - 有明确阶段的项目：用 `<pre>` 文本图或 Mermaid（如果确定主要在亮色主题下浏览）
 - 复杂架构：建议生成 HTML 可视化文件（skill 可辅助生成）
 
-#### 5. 核心机制/使用方式
+#### 5. 核心机制/使用方式（英文）
 
-- **技术型**：API 设计思路、关键抽象、扩展点
-- **产品型**：核心功能、使用场景、快速开始
-- **管线型**：数据流说明、每个阶段的技术动机、输出格式
-- **简洁型**：安装方式、命令行用法、参数说明
+- **技术型**: API design approach, key abstractions, extension points
+- **产品型**: Core features, usage scenarios, quick start
+- **管线型**: Data flow explanation, technical motivation for each stage, output formats
+- **简洁型**: Installation method, CLI usage, parameter descriptions
 
-#### 6. 产出物说明（管线型项目必须）
+#### 6. 产出物说明（管线型项目必须，英文）
 
 明确数据结构、输出格式、下游使用方式。
 
