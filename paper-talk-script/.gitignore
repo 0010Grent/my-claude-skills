@@ -1,0 +1,61 @@
+# Security / Privacy
+.env
+*.pem
+*.key
+credentials.json
+service-account*.json
+
+# Build artifacts
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+
+# Runtime logs
+nohup.out
+output.log
+*.log
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local task and note files
+task.txt
+tasks.txt
+TODO.txt
+NOTES.txt
+
+# Local project guidance (Claude Code specific)
+CLAUDE.md
+PLAN.md
+ARCHITECTURE.md
+
+# Local test directories
+tests/
+test/
+__tests__/
+*.test.js
+*.test.ts
+*.test.py
+
+# Private documentation (except README.md)
+*.md
+!README.md
+
+# Common local directories
+记录自建文件/
+notes/
+私人文件/
+
+# Workspace / runtime directories
+workspace/
+data/
+datasets/

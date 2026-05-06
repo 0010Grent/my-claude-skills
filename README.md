@@ -11,12 +11,15 @@ cd my-claude-skills && bash install.sh
 
 重启 Claude Code 即可使用。
 
-### 更新
+### 更新（自动同步）
+
+`install.sh` 使用符号链接（symlink）安装。只需执行一次：
 
 ```bash
-cd my-claude-skills
-git pull && bash install.sh
+cd my-claude-skills && bash install.sh
 ```
+
+此后，仓库内任何修改（包括 `git pull` 更新）都会自动同步到 Claude Code，无需重复运行安装脚本。
 
 ---
 
