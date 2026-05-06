@@ -1,122 +1,131 @@
-# my-claude-skills
+<div align="center">
 
-Claude Code 插件包，包含自建 Skills 与 Agents，用于日常开发工作流与学术可视化。
+# my-claude-skills — Personal Claude Code skills and agents toolkit
 
-## 安装
+*A curated collection of Claude Code skills and agents for development workflows and academic visualization*
+
+<p>
+  <img src="https://img.shields.io/badge/Bash-install%20script-brightgreen" />
+  <img src="https://img.shields.io/github/license/0010Grent/my-claude-skills" />
+  <img src="https://img.shields.io/github/last-commit/0010Grent/my-claude-skills" />
+</p>
+
+</div>
+
+---
+
+## Table of Contents
+
+- [Why Use This](#why-use-this)
+- [Key Features](#key-features)
+- [Quick Start](#quick-start)
+- [Available Skills](#available-skills)
+- [File Structure](#file-structure)
+- [License](#license)
+
+---
+
+## Why Use This
+
+Manually installing Claude Code skills one by one is tedious:
+- Skills from marketplaces cover generic use cases, not your specific workflows
+- Writing custom agents from scratch takes time and misses proven patterns
+- Academic presentations need specialized tools (arXiv readers, animation pipelines) not bundled in standard skill packs
+- Switching machines means re-installing and re-configuring everything
+
+This repository solves that with a single symlink: clone once, run `install.sh`, restart Claude Code, and all skills become immediately available. Each skill is self-contained with its own protocol, prompt templates, and usage guide. Updates propagate instantly through the symlink — no re-installation needed.
+
+---
+
+## Key Features
+
+- GitHub Push — One-click upload local projects to private GitHub repos with auto-generated `README.md`, `.gitignore` patching, and full rename support (code references + docs + repo name + local directory)
+- CV Creator — STAR-method resume optimization with quantified bullet generation and cross-bullet duplication checks
+- LLM Pipeline Scaffold — Production-grade batch processing skeleton with JSONL checkpoint resume, 5-level JSON error recovery, and tmux/nohup long-running scripts
+- ArXiv Paper Reporter — Deep-reading assistant that generates structured presentation reports with speaker allocation from English arXiv papers
+- ManimGL 3B1B — Concept visualization animation pipeline outputting MP4/GIF optimized for academic talks and PPT embedding
+- Paper Talk Script — Timed, page-by-page speaker script generator from presentation slides and PDF source material
+- Symlink Install — Install once, auto-sync forever. `git pull` updates reflect immediately without re-running the script
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Git
+- Claude Code
+- `gh` CLI (for `github-push` skill)
+
+### Installation
 
 ```bash
 git clone https://github.com/0010Grent/my-claude-skills.git
 cd my-claude-skills && bash install.sh
 ```
 
-重启 Claude Code 即可使用。
+Restart Claude Code. All skills and agents will be available.
 
-### 更新（自动同步）
+### Update
 
-`install.sh` 使用符号链接（symlink）安装。只需执行一次：
+Once installed via symlink, any change in the repository reflects immediately. Just run:
 
 ```bash
-cd my-claude-skills && bash install.sh
+cd my-claude-skills && git pull
 ```
 
-此后，仓库内任何修改（包括 `git pull` 更新）都会自动同步到 Claude Code，无需重复运行安装脚本。
+---
+
+## Available Skills
+
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `github-push` | `/github-push` | Push local projects to private GitHub repos with auto-generated README and `.gitignore` |
+| `CV-create` | `/resume-optimize` | STAR-method resume optimization with quantified bullet generation |
+| `llm-pipeline-scaffold` | `scaffold a pipeline` | Production-grade LLM batch processing skeleton with checkpoint resume |
+| `arxiv-paper-reporter` | `/read-paper <url>` | Deep-read English arXiv papers and generate structured presentation reports |
+| `manimgl-3b1b` | `制作动画` / `manim` | Create 3Blue1Brown-style concept visualization animations |
+| `paper-talk-script` | `/paper-talk-script` | Generate timed speaker scripts from slides and PDF papers |
+
+### Agents
+
+| Agent | Description |
+|-------|-------------|
+| `manimgl-animator` | Specialized agent for writing and rendering manimgl animations |
 
 ---
 
-## Skills 列表
+## File Structure
 
-### `github-push`
-
-将本地项目一键上传到 GitHub 私有仓库，或对已有仓库进行改名。
-
-**触发词**：`/github-push`、`上传到 GitHub`、`/github-push rename <new-name>`
-
-**功能**：
-- 自动补全 `.gitignore`
-- 创建 GitHub 私有仓库（`gh` CLI）
-- 提交并推送
-- 支持全量重命名（代码引用 + 文档 + GitHub 仓库 + 本地目录）
-
----
-
-### `CV-create`
-
-互联网大厂简历优化助手，基于 STAR 法则生成高质量 bullet。
-
-**触发词**：`/resume-optimize`
-
-**功能**：
-- 从项目代码/文档提炼量化成果
-- 强制格式：`关键词（3-8字）: 应用场景 → 痛点 → 方案 → 结果`
-- 内置禁用词表：去除 AI 味套语
-- 自动检查跨 bullet 重复句式
-
----
-
-### `llm-pipeline-scaffold`
-
-LLM 批量流水线脚手架，提炼自三个生产项目的设计模式。
-
-**触发词**：`scaffold a pipeline`、`新建一个流水线项目`
-
-**适用场景**：批量内容生成/标注/评估，需要断点续传、长时间无人值守运行。
-
-**生成内容**：
-- 完整目录骨架（`main.py`、`config.py`、`core/`、`prompts/`）
-- 断点续传（JSONL 追加式）
-- 5 级容错 JSON 解析
-- tmux/nohup 长任务启动脚本
-- 可选：自动提示词迭代优化模块（`optimizer/`）
+```text
+my-claude-skills/
+├── agents/                        # Claude Code agents
+│   └── manimgl-animator.md       # ManimGL animation agent definition
+├── github-push/                   # GitHub upload & rename skill
+│   ├── SKILL.md
+│   └── scripts/
+├── CV-create/                     # Resume optimization skill
+│   ├── SKILL.md
+│   └── ...
+├── llm-pipeline-scaffold/        # LLM batch pipeline scaffolding skill
+│   └── SKILL.md
+├── arxiv-paper-reporter/         # ArXiv deep-reading skill
+│   ├── SKILL.md
+│   └── ...
+├── manimgl-3b1b/                  # 3B1B animation skill
+│   ├── SKILL.md
+│   └── ...
+├── paper-talk-script/            # Presentation script generator
+│   ├── SKILL.md
+│   ├── README.md
+│   └── .gitignore
+├── install.sh                     # Symlink installer
+├── LICENSE                        # MIT License
+└── README.md                      # This file
+```
 
 ---
 
-### `arxiv-paper-reporter`
+## License
 
-深度阅读全英文 arxiv 论文，生成面向多人汇报的结构化解读报告。
-
-**触发词**：`/read-paper <链接或路径>`、`论文解读`、`论文汇报`、粘贴 arxiv 链接
-
-**功能**：
-- 解析 arxiv 链接或本地 PDF，输出四维分析（问题/算法/实验/结论）
-- 按章节难度均衡分配报告人，生成时长标注的分工方案
-- 对指定章节深度精读：算法流程 + 数学公式直觉解释
-- 生成完整汇报报告，每板块含攻读目标、精读章节、听众检查点
-
----
-
-### `manimgl-3b1b`
-
-使用 manimgl（3Blue1Brown 个人动画库）制作概念阐释动画。输出 MP4/GIF，用于学术汇报或 PPT 嵌入。
-
-**触发词**：`制作动画`、`manim`、`3b1b 风格`、`概念可视化`
-
-**功能**：
-- 将数学公式、算法流程、数据流转化为可视化动画
-- 深色背景、LaTeX 公式、ValueTracker 动态数值驱动
-- 慢速播放（20~36 秒/场景），适合 PPT 逐步讲解
-- 内置色彩系统与几何元素规范（BLUE/YELLOW/GREEN/RED/TEAL 语义映射）
-
----
-
-## Agents 列表
-
-Agents 存放于 `agents/` 目录，安装时同步到 `~/.claude/agents/`。
-
-### `manimgl-animator`
-
-专门负责编写和渲染 manimgl 动画的 Agent。接收概念描述，输出完整脚本并执行渲染。
-
-**能力**：
-- 阅读论文/文档，提取需可视化的核心概念
-- 按 3B1B 风格规范编写 manimgl 场景脚本
-- 调用 ffmpeg 转码 GIF，验证文件大小与时长
-
----
-
-## 与其他 Skills 库的关系
-
-| 来源 | 安装方式 | 说明 |
-|------|---------|------|
-| [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | `claude /plugin install` | 81 个通用 skills |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | 手动复制 | 工程类 18 个 skills |
-| 本仓库 | `bash install.sh` | 个人自建 skills + agents |
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
