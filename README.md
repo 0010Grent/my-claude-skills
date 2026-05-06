@@ -45,6 +45,7 @@ This repository solves that with a single symlink: clone once, run `install.sh`,
 - ArXiv Paper Reporter — Deep-reading assistant that generates structured presentation reports with speaker allocation from English arXiv papers
 - ManimGL 3B1B — Concept visualization animation pipeline outputting MP4/GIF optimized for academic talks and PPT embedding
 - Paper Talk Script — Timed, page-by-page speaker script generator from presentation slides and PDF source material
+- PPTX Polish — Automated layout fixing for academic/presentation slides: font size unification (≥18pt), line spacing to 1.5x, text overflow auto-expand, and sub-title divider alignment
 - Symlink Install — Install once, auto-sync forever. `git pull` updates reflect immediately without re-running the script
 
 ---
@@ -86,6 +87,7 @@ cd my-claude-skills && git pull
 | `arxiv-paper-reporter` | `/read-paper <url>` | Deep-read English arXiv papers and generate structured presentation reports |
 | `manimgl-3b1b` | `制作动画` / `manim` | Create 3Blue1Brown-style concept visualization animations |
 | `paper-talk-script` | `/paper-talk-script` | Generate timed speaker scripts from slides and PDF papers |
+| `pptx-polish` | `/pptx-polish` | Fix PPT layout issues: font size, line spacing, text overflow, divider alignment with python-pptx |
 
 ### Agents
 
@@ -119,6 +121,8 @@ my-claude-skills/
 │   ├── SKILL.md
 │   ├── README.md
 │   └── .gitignore
+├── pptx-polish/                  # PPT layout fixer using python-pptx
+│   └── SKILL.md
 ├── install.sh                     # Symlink installer
 ├── LICENSE                        # MIT License
 └── README.md                      # This file
